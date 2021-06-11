@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ตรวจสอบข้อมูล - เดิน-วิ่งการกุศล ครั้งที่ 3: ราชวิทยาลัยจุฬาภรณ์</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/select2.min.css">
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery-3.3.1.slim.min.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/sweetalert2.js"></script>
+    <script src="js/select2.min.js"></script>
+    <script src="js/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="card-main">
+                    <img src="images/banner-01.jpg" width="100%" height="20%">
+                    <div class="containers">
+                        <!-- <a href="models/downloadReport.php" class="btn btn-primary" id="report">สรุปการแจกเสื้อแยกตามประเภทการวิ่ง</a> -->
+                        <form name="form-verify" id="form-verify" method="POST">
+                            <div class="banner">
+                                <b>ตรวจสอบข้อมูลของคุณ <br>
+                                    Please Verify Your Information</b>
+                            </div>
+                            <table width="100%">
+                                <tr>
+                                    <td td align="center" height="60">
+                                        <h3>กรอกเลขบัตรประชาชน หมายเลข BIB ชื่อ นามสกุล</h3>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" height="60">
+                                        <div id="txtKeyword">
+                                            <input autofocus type="text" name="keyword" id="keyword" class="form-control col-sm-6" required autofocus placeholder="กรอกเลขบัตรประชาชน หมายเลข BIB ชื่อ นามสกุล">
+                                        </div>
+                                        <div id="txtGroup" class="hidden-group">
+
+                                        </div>
+                                        <!-- <div class="invalid-feedback">
+                                            <h4>กรุณาใส่หมายเลขบัตรประชาชน หมายเลข BIB ชื่อ นามสกุล ให้ถูกต้อง!</h4>
+                                        </div> -->
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td td align="center" height="60">
+                                        <h4><strong><input type="checkbox" name="replace" id="replace" value="">
+                                                กรณีรับแทน</strong></h4>
+                                        <h4><strong><input type="checkbox" name="group" id="group" value="">
+                                                กรณีรับประเภทกลุ่ม</strong></h4>
+                                    </td>
+                                </tr>
+                            </table>
+                            <button type="submit" class="btn btn-primary col-3" id="btn-submit">
+                                <b class="btn-submit">ยืนยัน</b>
+                            </button>
+                        </form>
+                        <hr>
+                        <div id="info">
+                            <div id="show-data"></div>
+                        </div>
+                        <div id="recip" class="hidden-group">
+                            <form id="form-recip" method="post">
+                                <table width="100%" id="tb-data">
+                                    <tr>
+                                        <td align="center" colspan="2">
+                                            <h3 style="font-weight: bold;">ข้อมูลผู้รับ</h3>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="right">เลขบัตรประชาชน :: </td>
+                                        <td align="left"><input type="text" name="recip_cid" id="recip_cid" style="font-size: 25px; width: 70%;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td align="right">ชื่อ-นามสกุล :: </td>
+                                        <td align="left"><input type="text" name="recip_name" id="recip_name" style="font-size: 25px; width: 70%;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td align="right">เบอร์ติดต่อ :: </td>
+                                        <td align="left"><input type="text" name="recip_tel" id="recip_tel" style="font-size: 25px; width: 50%;"></td>
+                                    </tr>
+                                </table>
+                            </form>
+                            <hr>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    let dataCard, dataCid, dataName;
+    var socket = io.connect('http://localhost:3000');
+    socket.on('connect', function() {
+        socket.emit('set-query', {
+            query: [
+                'cid',
+                'name',
+            ]
+        });
+    });
+    socket.on('smc-data', function(data) {
+        dataCard = data.data.personal;
+        dataCid = (dataCard != undefined) ? dataCard.cid : ""
+        dataName = (dataCard != undefined) ? dataCard.name.fullname : ""
+        $("#keyword").val(dataCid);
+        //console.log(dataCard.cid);
+    });
+    // socket.on('smc-error', function(data) {
+    //     console.log(data);
+    //     dataEl.innerHTML = JSON.stringify(data)
+    // });
+    // socket.on('smc-removed', function(data) {
+    //     console.log(data);
+    //     dataEl.innerHTML = JSON.stringify(data)
+    // });
+    // socket.on('smc-incorrect', function(data) {
+    //     console.log(data);
+    //     dataEl.innerHTML = JSON.stringify(data)
+    // });
+    // socket.on('smc-inserted', function(data) {
+    //     console.log(data);
+    //     dataEl.innerHTML = JSON.stringify(data)
+    // });
+    $(document).ready(function() {
+        $('html,body').animate({
+            scrollTop: $("#keyword").offset().top
+        }, 'slow');
+        $("#group").change(function() {
+            $('#recip_name').val('');
+            $('#recip_tel').val('');
+            $('#show-data').html('');
+            if ($(this).prop('checked')) {
+                $("#replace").attr('disabled', 'disabled');
+                $("#group").val("1");
+                $("#keyword").val("");
+                $('#txtKeyword').addClass('hidden-group');
+                $('#txtGroup').removeClass('hidden-group');
+                getGroup();
+            } else {
+                $("#replace").removeAttr('disabled', 'disabled');
+                $("#group").val("");
+                $("#keyword").val();
+                $('#txtKeyword').removeClass('hidden-group');
+                $('#txtGroup').addClass('hidden-group');
+            }
+        });
+        $("#replace").change(function() {
+            $('#show-data').html('');
+            if ($(this).prop('checked')) {
+                $("#replace").val("1");
+                $('#recip_cid').val(dataCid);
+                $('#recip_name').val(dataName);
+                $("#keyword").val("");
+            } else {
+                $("#replace").val("");
+                $("#keyword").val(dataCid);
+            }
+        });
+        $(document).on('click', '#confirm_shirt', function(e) {
+            var cid = $(this).data('id');
+            confirmShirt(cid);
+            e.preventDefault();
+        });
+
+        $(document).on('click', '#cancel_shirt', function(e) {
+            var cid = $(this).data('id');
+            cancelShirt(cid);
+            e.preventDefault();
+        });
+
+        // $(document).on('click', '#report', function (e) {
+        //     downloadReport();
+        //     e.preventDefault();
+        // });
+
+        // function downloadReport() {
+        //     $.ajax({
+        //         url: "models/downloadReport.php",
+        //         method: "POST",
+        //         data: "report=1",
+        //         beforeSend: function () {
+
+        //         },
+        //         success: function (data) {
+        //             var decode = JSON.parse(data);
+        //             if (decode.status == 200) {
+        //                 console.log(decode.message);
+        //                 // swal({
+        //                 //     title: 'รับเสื้อแล้ว',
+        //                 //     text: 'ทำรายการเรียบร้อยแล้ว...',
+        //                 //     type: 'success'
+        //                 // });
+        //                 // $('#data-shirt').html('<b style="color:green;">รับเสื้อแล้ว</b>');
+        //                 // $('#data-shirt-cancel').html('<a href="javascript:void(0);" id="cancel_shirt" data-id="' + cid + '" class="btn btn-danger col-3"><b class="btn-submit">ยกเลิก</b></a>');
+        //             } else if (decode.status == 400) {
+        //                 console.log(decode.message);
+        //             }
+        //         },
+        //         error: function () {
+
+        //         }
+        //     });
+        // }
+
+        function confirmShirt(cid) {
+            //console.log($('#form-recip').serialize());
+            let cid2, group;
+            let recipst = ($('#replace').val() === "1") ? 1 : 0;
+            if ($("#group").val() === "1") {
+                group = $('#dataGroup').val()
+                cid2 = ""
+            } else {
+                group = ""
+                cid2 = cid
+            }
+            $.ajax({
+                url: "models/confirmShirt.php",
+                method: "POST",
+                data: "cid=" + cid2 + "&recip_cid=" + $('#recip_cid').val() + "&recip_name=" + $('#recip_name').val() + "&recip_tel=" + $('#recip_tel').val() + "&recip_status=" + recipst + "&group=" + group,
+                beforeSend: function() {
+
+                },
+                success: function(data) {
+                    var decode = JSON.parse(data);
+                    console.log(decode);
+
+                    if (decode.status == 200) {
+                        swal({
+                            title: 'รับเสื้อแล้ว',
+                            text: 'ทำรายการเรียบร้อยแล้ว...',
+                            type: 'success'
+                        });
+                        $('#data-shirt').html('<b style="color:green;">รับเสื้อแล้ว</b>');
+                        $('#data-shirt-cancel').html('<a href="javascript:void(0);" id="cancel_shirt" data-id="' + cid + '" class="btn btn-danger col-3"><b class="btn-submit">ยกเลิก</b></a>');
+                    } else if (decode.status == 400) {
+                        alert(decode.message);
+                    }
+                },
+                error: function() {
+
+                }
+            });
+        }
+
+        function getGroup() {
+            $.ajax({
+                url: "models/getGroup.php",
+                method: "POST",
+                data: "group=1",
+                beforeSend: function() {
+
+                },
+                success: function(data) {
+                    var decode = JSON.parse(data);
+
+                    if (decode.status == 200) {
+                        var result = '<select name="dataGroup" id="dataGroup" class="col-sm-6" style="height: 50px;">'
+                        result += '<option value="" selected disabled>เลือกกลุ่ม</option>'
+                        for (var i = 0; i < decode.groupname.length; i++) {
+                            result += '<option value=' + decode.groupname[i] + '>'
+                            result += decode.groupname[i]
+                            result += '</option>'
+                        }
+                        result += '</select>';
+                        $('#txtGroup').html(result);
+                        $('#dataGroup').select2();
+                    } else if (decode.status == 400) {
+                        alert(decode.message);
+                    }
+                },
+                error: function() {
+
+                }
+            });
+        }
+
+        function cancelShirt(cid) {
+            let cid2, group;
+            if ($("#group").val() === "1") {
+                group = $('#dataGroup').val()
+                cid2 = ""
+            } else {
+                group = ""
+                cid2 = cid
+            }
+            swal({
+                title: 'ยืนยันการยกเลิก',
+                text: "ต้องการยกเลิกการรับเสื้อหรือไม่?",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'OK',
+                cancelButtonText: 'CENCEL'
+            }).then((result) => {
+                $.ajax({
+                    url: "models/cancelShirt.php",
+                    method: "POST",
+                    data: "cid=" + cid2 + "&group=" + group,
+                    beforeSend: function() {
+
+                    },
+                    success: function(data) {
+                        var decode = JSON.parse(data);
+                        if (decode.status == 200) {
+                            swal(
+                                'ยกเลิกรับเสื้อแล้ว',
+                                'ขอบคุณค่ะ',
+                                'success'
+                            )
+                            $('#data-shirt').html('<a href="javascript:void(0);" id="confirm_shirt" data-id="' + cid + '" class="btn btn-info col-4"><b class="btn-submit">ยืนยันรับเสื้อ</b></a>');
+                            $('#data-shirt-cancel').html('');
+                        } else if (decode.status == 400) {
+                            alert(decode.message);
+                        }
+                    },
+                    error: function() {
+
+                    }
+                });
+            })
+        }
+
+        $(document).on('click', '#btn-submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: "models/getData.php",
+                method: "POST",
+                data: $('#form-verify').serialize(),
+                beforeSend: function() {
+
+                },
+                success: function(data) {
+                    var decode = JSON.parse(data);
+                    console.log(decode);
+                    if (decode.status == 200) {
+                        var format_cid = "";
+                        if (decode.cid.length == 13) {
+                            var str1 = decode.cid.substr(0, 1);
+                            var str2 = decode.cid.substr(1, 4);
+                            var str3 = decode.cid.substr(5, 5);
+                            var str4 = decode.cid.substr(10, 2);
+                            var str5 = decode.cid.substr(12, 1);
+                            format_cid = str1 + '-' + str2 + '-' + str3 + '-' + str4 + '-' + str5;
+                        } else {
+                            format_cid = decode.cid;
+                        }
+
+                        var bib_number = decode.bib_number;
+                        var cnt = bib_number.length;
+                        var result = '<table width="100%" id="tb-data">'
+                        result += '<tr>'
+                        result += '<td align="center" colspan="2">'
+                        result += '    <h3><b>หมายเลขของคุณ</b></h3>'
+                        result += '</td>'
+                        result += '    </tr>'
+                        result += '<tr>'
+                        result += '    <td align="center" width="250" height="50" colspan="2">'
+                        if (cnt > 1) {
+                            result += '        <div id="data-number" style="font-size: 50px;">'
+                        } else {
+                            result += '        <div id="data-number" style="font-size: 80px;">'
+                        }
+
+                        for (var i = 0; i < cnt; i++) {
+                            if (i == (cnt - 1)) {
+                                result += ' ' + bib_number[i] + '';
+                            } else {
+                                result += ' ' + bib_number[i] + ',';
+                            }
+                        }
+                        result += '</div>'
+                        result += '    </td>'
+                        result += '</tr>'
+                        if (decode.groupname == null) {
+                            result += '<tr>'
+                            result += '    <td align="right" width="50%">'
+                            result += '        หมายเลขบัตรประชาชน 13 หลัก | Passport ::'
+                            result += '        </td>'
+                            result += '    <td align="left">'
+
+                            result += '        <div id="data-cid">' + format_cid + '</div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                            result += '<tr>'
+                            result += '    <td align="right" width="50%">'
+                            result += '        ชื่อ - สกุล ::'
+                            result += '        </td>'
+                            result += '    <td align="left">'
+                            result += '        <div id="data-name">' + decode.name + '</div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                            result += '<tr>'
+                            result += '    <td align="right" width="50%">'
+                            result += '        เพศ ::'
+                            result += '        </td>'
+                            result += '    <td align="left">'
+                            result += '        <div id="data-name">' + decode.sex + '</div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                            result += '<tr>'
+                            result += '    <td align="right" width="50%">'
+                            result += '        ช่วงอายุ ::'
+                            result += '        </td>'
+                            result += '    <td align="left">'
+                            result += '        <div id="data-name">' + decode.age + '</div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                        }
+                        result += '<tr>'
+                        result += '    <td align="right" width="50%">'
+                        result += '        ประเภทการสมัคร ::'
+                        result += '        </td>'
+                        result += '    <td align="left">'
+                        result += '        <div id="data-name">' + decode.categoryrun + '</div>'
+                        result += '    </td>'
+                        result += '</tr>'
+                        if (decode.groupname != null) {
+                            result += '<tr>'
+                            result += '    <td align="right" width="50%">'
+                            result += '        ชื่อกลุ่ม ::'
+                            result += '        </td>'
+                            result += '    <td align="left">'
+                            result += '        <div id="data-name">' + decode.groupname + ' (' + decode.unit + ' คน)' + '</div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                        }
+                        result += '<tr>'
+                        result += '    <td align="right" width="50%" valign="top">'
+                        result += '        ประเภทการวิ่ง ::'
+                        result += '        </td>'
+                        result += '    <td align="left">'
+                        result += '        <div id="data-name">' + decode.type + '</div>'
+                        result += '    </td>'
+                        result += '</tr>'
+                        result += '<tr>'
+                        result += '    <td align="right" width="50%">'
+                        result += '        สถานที่วิ่ง ::'
+                        result += '        </td>'
+                        result += '    <td align="left">'
+                        result += '        <div id="data-name">' + decode.place + '</div>'
+                        result += '    </td>'
+                        result += '</tr>'
+                        var size = decode.size;
+                        var cnt_size = size.length;
+                        result += '<tr>'
+                        result += '    <td align="right" width="50%">'
+                        result += '        ไซต์เสื้อ ::'
+                        result += '        </td>'
+                        result += '    <td align="left">'
+                        result += '        <div id="data-name">' + decode.size + '</div>'
+                        result += '    </td>'
+                        result += '</tr>'
+                        if (decode.groupname == null) {
+                            result += '<tr>'
+                            result += '    <td align="right" width="50%">'
+                            result += '        เบอร์ติดต่อ ::'
+                            result += '        </td>'
+                            result += '    <td align="left">'
+                            result += '        <div id="data-name">' + decode.phone_number + '</div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                        }
+                        if (decode.status_shirt == 1) {
+                            result += '<tr>'
+                            result += '    <td align="center" colspan="2">'
+                            result += '        <div id="data-shirt"><a href="javascript:void(0);" id="confirm_shirt" data-id="' + decode.cid + '" class="btn btn-info col-4"><b class="btn-submit">ยืนยันรับเสื้อ</b></a></div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                            result += '<tr>'
+                            result += '    <td align="center" colspan="2">'
+                            result += '        <div id="data-shirt-cancel"></div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                        } else {
+                            result += '<tr>'
+                            result += '    <td align="center" colspan="2">'
+                            result += '        <div id="data-shirt"><b style="color:green;">รับเสื้อแล้ว</b></div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                            result += '<tr>'
+                            result += '    <td align="center" colspan="2">'
+                            result += '        <div id="data-shirt-cancel"><a href="javascript:void(0);" id="cancel_shirt" data-id="' + decode.cid + '" class="btn btn-danger col-3"><b class="btn-submit">ยกเลิก</b></a></div>'
+                            result += '    </td>'
+                            result += '</tr>'
+                        }
+                        result += '</table ><hr>';
+
+                        $('#recip').removeClass('hidden-group');
+                        $('#recip_cid').val();
+                        if ($('#replace').val() === "1") {
+                            $('#recip_cid').val(dataCid);
+                            $('#recip_name').val(dataName);
+                            $('#recip_tel').val("");
+                        } else {
+                            if (decode.groupname != null) {
+                                $('#recip_cid').val(dataCid);
+                                $('#recip_name').val(dataName);
+                                $('#recip_tel').val("");
+                            } else {
+                                $('#recip_cid').val(decode.cid);
+                                $('#recip_name').val(decode.name);
+                                $('#recip_tel').val(decode.phone_number);
+                            }
+                        }
+                        if (decode.status_shirt == 9) {
+                            $('#recip_cid').val(decode.recipcid);
+                            $('#recip_name').val(decode.recipname);
+                            $('#recip_tel').val(decode.reciptel);
+                        }
+                        //alert($('#recip').val());
+                        $('#show-data').html(result);
+                        $('#keyword').removeClass('is-invalid');
+                        $('#keyword').val('');
+                    } else {
+                        var error = '<div id="error-mgs" style="color: crimson;">ไม่พบข้อมูล !!!</div>';
+                        $('#show-data').html(error);
+                        $('#keyword').removeClass('is-invalid');
+                        $('#keyword').val('');
+                    }
+
+                },
+                error: function() {
+
+                }
+            });
+        });
+
+        $("#btn-submit").click(function() {
+            $('html,body').animate({
+                    scrollTop: $("#info").offset().top
+                },
+                'slow');
+        });
+
+        $('#cid').keyup(function() {
+            this.value = this.value.replace(/[^0-9\.]/g, '');
+        });
+
+    });
+</script>
+
+</html>
